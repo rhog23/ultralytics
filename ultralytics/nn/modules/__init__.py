@@ -169,6 +169,4 @@ __all__ = (
 <<<<<<< HEAD
 =======
     "SCDown",
-    "SP2D",
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
 )

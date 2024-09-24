@@ -1159,29 +1159,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in {
-                BottleneckCSP,
-                C1,
-                C2,
-                C2f,
-<<<<<<< HEAD
-                C3k2,
-=======
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
-                C2fAttn,
-                C3,
-                C3TR,
-                C3Ghost,
-                C3x,
-                RepC3,
-<<<<<<< HEAD
-                C2fPSA,
-                C2fCIB,
-                C2PSA,
-=======
-                C2fCIB,
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
-            }:
+            if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fCIB}:
                 args.insert(2, n)  # number of repeats
                 n = 1
             if m is C3k2 and scale in "mlx":  # for M/L/X sizes
@@ -1282,13 +1260,7 @@ def guess_model_scale(model_path):
     with contextlib.suppress(AttributeError):
         import re
 
-<<<<<<< HEAD
-        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
-=======
-        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
-            1
-        )  # n, s, m, l, or x
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
+        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
     return ""
 
 
