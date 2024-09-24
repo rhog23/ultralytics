@@ -56,6 +56,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    SP2D,
 )
 from .conv import (
     CBAM,
@@ -72,7 +73,16 @@ from .conv import (
     RepConv,
     SpatialAttention,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
+from .head import (
+    OBB,
+    Classify,
+    Detect,
+    Pose,
+    RTDETRDecoder,
+    Segment,
+    WorldDetect,
+    v10Detect,
+)
 from .transformer import (
     AIFI,
     MLP,
@@ -156,4 +166,9 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
+<<<<<<< HEAD
+=======
+    "SCDown",
+    "SP2D",
+>>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
 )
