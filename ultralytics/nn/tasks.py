@@ -1165,9 +1165,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C2,
                 C2f,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 C3k2,
 =======
 >>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
+=======
+>>>>>>> 10ba64182674305c825b78cd8764d32f4bb7c15e
                 C2fAttn,
                 C3,
                 C3TR,
@@ -1175,12 +1178,16 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C3x,
                 RepC3,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 C2fPSA,
                 C2fCIB,
                 C2PSA,
 =======
                 C2fCIB,
 >>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
+=======
+                C2fCIB,
+>>>>>>> 10ba64182674305c825b78cd8764d32f4bb7c15e
             }:
                 args.insert(2, n)  # number of repeats
                 n = 1
@@ -1283,12 +1290,18 @@ def guess_model_scale(model_path):
         import re
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
 =======
         return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
             1
         )  # n, s, m, l, or x
 >>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
+=======
+        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
+            1
+        )  # n, s, m, l, or x
+>>>>>>> 10ba64182674305c825b78cd8764d32f4bb7c15e
     return ""
 
 
