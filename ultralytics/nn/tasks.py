@@ -1167,34 +1167,19 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 C1,
                 C2,
                 C2f,
+                C3k2,
                 C2fAttn,
                 C3,
                 C3TR,
                 C3Ghost,
                 C3x,
                 RepC3,
+                C2fPSA,
                 C2fCIB,
+                C2PSA,
             }:
-                if m in {
-                    BottleneckCSP,
-                    C1,
-                    C2,
-                    C2f,
-                    C3k2,
-                    C2fAttn,
-                    C3,
-                    C3TR,
-                    C3Ghost,
-                    C3x,
-                    RepC3,
-                    C2fPSA,
-                    C2fCIB,
-                    C2PSA,
-                    C2fCIB,
-                    C2fCIB,
-                }:
-                    args.insert(2, n)  # number of repeats
-                    n = 1
+                args.insert(2, n)  # number of repeats
+                n = 1
             if m is C3k2 and scale in "mlx":  # for M/L/X sizes
                 args[3] = True
         elif m is AIFI:
@@ -1292,6 +1277,13 @@ def guess_model_scale(model_path):
     """
     with contextlib.suppress(AttributeError):
         import re
+
+        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
+            1
+        )  # n, s, m, l, or x
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(
+            1
+        )  # n, s, m, l, or x
 
         return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
             1
