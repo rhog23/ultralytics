@@ -166,15 +166,6 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
-<<<<<<< HEAD
-=======
     "SCDown",
-<<<<<<< HEAD
-=======
     "SP2D",
-<<<<<<< HEAD
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
-=======
->>>>>>> 10ba64182674305c825b78cd8764d32f4bb7c15e
->>>>>>> ecffbe96cea2ecef0c0fa594b0190f61456029c2
 )
