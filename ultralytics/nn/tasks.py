@@ -1162,36 +1162,41 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 )  # num heads
 
             args = [c1, c2, *args[1:]]
-            if m in {BottleneckCSP, C1, C2, C2f, C2fAttn, C3, C3TR, C3Ghost, C3x, RepC3, C2fCIB}:
             if m in {
                 BottleneckCSP,
                 C1,
                 C2,
                 C2f,
-                C3k2,
                 C2fAttn,
                 C3,
                 C3TR,
                 C3Ghost,
                 C3x,
                 RepC3,
-                C2fPSA,
                 C2fCIB,
-                C2PSA,
-=======
-                C2fCIB,
->>>>>>> 58c4dc72 ([info] fresh new ultralytics experiment)
-=======
-                C2fCIB,
->>>>>>> 10ba64182674305c825b78cd8764d32f4bb7c15e
             }:
->>>>>>> ecffbe96cea2ecef0c0fa594b0190f61456029c2
-                args.insert(2, n)  # number of repeats
-                n = 1
-            if m is C3k2:  # for M/L/X sizes
-                legacy = False
-                if scale in "mlx":
-                    args[3] = True
+                if m in {
+                    BottleneckCSP,
+                    C1,
+                    C2,
+                    C2f,
+                    C3k2,
+                    C2fAttn,
+                    C3,
+                    C3TR,
+                    C3Ghost,
+                    C3x,
+                    RepC3,
+                    C2fPSA,
+                    C2fCIB,
+                    C2PSA,
+                    C2fCIB,
+                    C2fCIB,
+                }:
+                    args.insert(2, n)  # number of repeats
+                    n = 1
+            if m is C3k2 and scale in "mlx":  # for M/L/X sizes
+                args[3] = True
         elif m is AIFI:
             args = [ch[f], *args]
         elif m in {HGStem, HGBlock}:
@@ -1287,8 +1292,13 @@ def guess_model_scale(model_path):
     """
     with contextlib.suppress(AttributeError):
         import re
-        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
-        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(1)  # n, s, m, l, or x
+
+        return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
+            1
+        )  # n, s, m, l, or x
+        return re.search(r"yolo[v]?\d+([nslmx])", Path(model_path).stem).group(
+            1
+        )  # n, s, m, l, or x
         return re.search(r"yolov\d+([nslmx])", Path(model_path).stem).group(
             1
         )  # n, s, m, l, or x

@@ -166,4 +166,6 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
+    "SCDown",
+    "SP2D",
 )
