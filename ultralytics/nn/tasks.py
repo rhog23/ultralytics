@@ -62,6 +62,7 @@ from ultralytics.nn.modules import (
     SP2D,
     WorldDetect,
     v10Detect,
+    GAM,
 )
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
@@ -1071,6 +1072,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     """Parse a YOLO model.yaml dictionary into a PyTorch model."""
     import ast
 
+    print(f"CH in parse model: {ch}")
+
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
@@ -1145,6 +1148,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
+            GAM
         }:
             c1, c2 = ch[f], args[0]
             if (

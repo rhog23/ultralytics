@@ -69,6 +69,7 @@ from .conv import (
     DWConvTranspose2d,
     Focus,
     GhostConv,
+    GAM,
     LightConv,
     RepConv,
     SpatialAttention,
@@ -168,4 +169,5 @@ __all__ = (
     "PSA",
     "SCDown",
     "SP2D",
+    "GAM",
 )
