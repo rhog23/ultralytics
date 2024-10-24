@@ -36,6 +36,24 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
     return p
 
 
+def channel_shuffle(x, groups=2):
+    """channel shuffle.
+    reshape > transpose > flatten
+
+    Args:
+        x (torch.Tensor): input tensor
+        groups (int, optional): groups. Defaults to 2.
+
+    Returns:
+        _type_: _description_
+    """
+
+    b, c, h, w = x.shape
+    out = x.view(b, groups, c // groups, h, w).permute(0, 2, 1, 3, 4).contiguous()
+    out = out.view(b, c, h, w)
+    return out
+
+
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
 
@@ -426,7 +444,6 @@ class GAM(nn.Module):
         x = x * ch_att_result  # element-wise multiplication between mc(x) and x
 
         sp_att_result = self.sp_att(x).sigmoid()
-        shuffle = nn.ChannelShuffle(groups=4)
-        shuff_res = shuffle(sp_att_result)
+        shuff_res = channel_shuffle(sp_att_result, groups=4)
         out = x * shuff_res
         return out
