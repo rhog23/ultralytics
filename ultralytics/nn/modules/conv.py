@@ -22,6 +22,7 @@ __all__ = (
     "Concat",
     "RepConv",
     "GAM",
+    "EMA",
 )
 
 
@@ -447,3 +448,42 @@ class GAM(nn.Module):
         shuff_res = channel_shuffle(sp_att_result, groups=4)
         out = x * shuff_res
         return out
+
+
+class EMA(nn.Module):
+    """Implementation of Efficient Multi-Scale Attention Module with Cross-Spatial Learning
+    paper: https://arxiv.org/abs/2305.13563 | https://dx.doi.org/10.17023/kxgj-d755
+    Github: https://github.com/YOLOonMe/EMA-attention-module
+    """
+
+    def __init__(self, channels, c2=None, factor=32):
+        super().__init__()
+        self.g = factor  # groups
+        self.c_ = channels // self.g
+        assert self.c_ > 0  # checks whether the channels' value is multiples of 32
+        self.softmax = nn.Softmax(-1)
+        self.avgp = nn.AdaptiveAvgPool2d((1, 1))
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))  # pooling layer in height
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))  # pooling layer in width
+        self.gn = nn.GroupNorm(self.c_, self.c_)
+        self.conv1x1 = nn.Conv2d(self.c_, self.c_, kernel_size=1, stride=1, padding=0)
+        self.conv3x3 = nn.Conv2d(self.c_, self.c_, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, x):
+        b, c, h, w = x.size()
+        group_x = x.reshape(b * self.g, -1, h, w)  # b*g, c//g, h, w
+        # logging.info(f"batch: {b} | Group X: {group_x.shape}")
+        x_h = self.pool_h(group_x)
+        x_w = self.pool_w(group_x).permute(0, 1, 3, 2)
+        hw = self.conv1x1(torch.cat([x_h, x_w], dim=2))
+        x_h, x_w = torch.split(hw, [h, w], dim=2)
+        x1 = self.gn(group_x * x_h.sigmoid() * x_w.permute(0, 1, 3, 2).sigmoid())
+        x2 = self.conv3x3(group_x)
+        x11 = self.softmax(self.avgp(x1).reshape(b * self.g, -1, 1).permute(0, 2, 1))
+        x12 = x2.reshape(b * self.g, self.c_, -1)  # b*g, c//g, hw
+        x21 = self.softmax(self.avgp(x2).reshape(b * self.g, -1, 1).permute(0, 2, 1))
+        x22 = x1.reshape(b * self.g, self.c_, -1)  # b*g, c//g, hw
+        weights = (torch.matmul(x11, x12) + torch.matmul(x21, x22)).reshape(
+            b * self.g, 1, h, w
+        )
+        return (group_x * weights.sigmoid()).reshape(b, c, h, w)

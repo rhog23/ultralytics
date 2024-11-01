@@ -765,7 +765,9 @@ class C3f(nn.Module):
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv((2 + n) * c_, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(c_, c_, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+        self.m = nn.ModuleList(
+            Bottleneck(c_, c_, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n)
+        )
 
     def forward(self, x):
         """Forward pass through C2f layer."""
@@ -781,7 +783,12 @@ class C3k2(C2f):
         """Initializes the C3k2 module, a faster CSP Bottleneck with 2 convolutions and optional C3k blocks."""
         super().__init__(c1, c2, n, shortcut, g, e)
         self.m = nn.ModuleList(
-            C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+            (
+                C3k(self.c, self.c, 2, shortcut, g)
+                if c3k
+                else Bottleneck(self.c, self.c, shortcut, g)
+            )
+            for _ in range(n)
         )
 
 
@@ -793,7 +800,9 @@ class C3k(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
         # self.m = nn.Sequential(*(RepBottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
-        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(Bottleneck(c_, c_, shortcut, g, k=(k, k), e=1.0) for _ in range(n))
+        )
 
 
 class RepVGGDW(torch.nn.Module):
@@ -1092,7 +1101,12 @@ class C2PSA(nn.Module):
         self.cv1 = Conv(c1, 2 * self.c, 1, 1)
         self.cv2 = Conv(2 * self.c, c1, 1)
 
-        self.m = nn.Sequential(*(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)))
+        self.m = nn.Sequential(
+            *(
+                PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64)
+                for _ in range(n)
+            )
+        )
 
     def forward(self, x):
         """Processes the input tensor 'x' through a series of PSA blocks and returns the transformed tensor."""
@@ -1130,7 +1144,9 @@ class C2fPSA(C2f):
         """Initializes the C2fPSA module, a variant of C2f with PSA blocks for enhanced feature extraction."""
         assert c1 == c2
         super().__init__(c1, c2, n=n, e=e)
-        self.m = nn.ModuleList(PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n))
+        self.m = nn.ModuleList(
+            PSABlock(self.c, attn_ratio=0.5, num_heads=self.c // 64) for _ in range(n)
+        )
 
 
 class SCDown(nn.Module):
