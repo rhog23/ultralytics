@@ -73,6 +73,7 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    EMA,
 )
 from .head import (
     OBB,
@@ -170,4 +171,5 @@ __all__ = (
     "SCDown",
     "SP2D",
     "GAM",
+    "EMA",
 )
