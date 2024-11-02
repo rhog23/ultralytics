@@ -1,6 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 # YOLOv10 object detection model. For Usage examples see https://docs.ultralytics.com/tasks/detect
 
+# YOLOv10s summary: 402 layers, 8,128,272 parameters, 8,128,256 gradients, 25.1 GFLOPs
+
 # Parameters
 nc: 80 # number of classes
 scales: # model compound scaling constants, i.e. 'model=yolov10n.yaml' will call yolov10.yaml with scale 'n'
