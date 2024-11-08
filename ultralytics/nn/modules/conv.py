@@ -23,6 +23,7 @@ __all__ = (
     "RepConv",
     "GAM",
     "EMA",
+    "SimAM",
 )
 
 
@@ -487,3 +488,46 @@ class EMA(nn.Module):
             b * self.g, 1, h, w
         )
         return (group_x * weights.sigmoid()).reshape(b, c, h, w)
+
+
+class SimAM(nn.Module):
+    """Implementation of SimAM (Simple, Parameter-Free Attention)  Module
+
+    reference: `https://www.mendeley.com/reference-manager/reader/ac8708cd-f6e7-3e08-a52f-6f75b9b7bb6b/2e473464-927b-381d-07d1-5320bca901e7/`
+
+    code ref: `https://github.com/ZjjConan/SimAM`
+    """
+
+    def __init__(self, c1=None, e_lambda=1e-4):
+        super().__init__()
+        # self.act = nn.Sigmoid()
+        self.act = nn.SiLU()
+        self.e_lambda = e_lambda
+
+    def forward(self, x):
+        """_summary_
+
+        Args:
+            x (torch.tensor): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        _, _, h, w = x.size()
+
+        n = w * h - 1  # number of neurons on the channel
+
+        x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(
+            2
+        )  # square of (t - u)
+
+        y = (
+            x_minus_mu_square
+            / (
+                4
+                * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)
+            )
+            + 0.5
+        )  #
+
+        return x * self.act(y)  # attended features

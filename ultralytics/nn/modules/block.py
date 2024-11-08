@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
+from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad, SimAM
 from .transformer import TransformerBlock
 
 __all__ = (
@@ -806,7 +806,8 @@ class C3k(C3):
 
 
 class RepVGGDW(torch.nn.Module):
-    """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture."""
+    """RepVGGDW is a class that represents a depth wise separable convolutional block in RepVGG architecture.
+    Performs the depthwise-separable convolution during training."""
 
     def __init__(self, ed) -> None:
         """Initializes RepVGGDW with depthwise separable convolutional layers for efficient processing."""
@@ -831,6 +832,7 @@ class RepVGGDW(torch.nn.Module):
     def forward_fuse(self, x):
         """
         Performs a forward pass of the RepVGGDW block without fusing the convolutions.
+        The `forward_fuse` method performs the fused convolution during inference.
 
         Args:
             x (torch.Tensor): Input tensor.
@@ -1204,3 +1206,46 @@ class SP2D(nn.Module):
             ],
             1,
         )
+
+
+class BottleneckSimAM(nn.Module):
+    """Standard bottleneck."""
+
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
+        """Initializes a standard bottleneck module with optional shortcut connection and configurable parameters."""
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = nn.Sequential(Conv(c_, c2, k[1], 1, g=g), SimAM())
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        """Applies the YOLO FPN to input data."""
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
+
+
+class C2fSimAM(nn.Module):
+    """C2f module with SimAM attention"""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Initializes a CSP bottleneck with 2 convolutions and n Bottleneck blocks for faster processing."""
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = nn.Sequential(Conv((2 + n) * self.c, c2, 1), SimAM())
+        self.m = nn.ModuleList(
+            BottleneckSimAM(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0)
+            for _ in range(n)
+        )
+
+    def forward(self, x):
+        """Forward pass through C2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+    def forward_split(self, x):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))

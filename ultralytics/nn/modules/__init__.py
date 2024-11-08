@@ -74,6 +74,7 @@ from .conv import (
     RepConv,
     SpatialAttention,
     EMA,
+    SimAM,
 )
 from .head import (
     OBB,
