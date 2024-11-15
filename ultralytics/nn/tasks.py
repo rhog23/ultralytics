@@ -64,6 +64,7 @@ from ultralytics.nn.modules import (
     v10Detect,
     GAM,
     EMA,
+    CBAM,
 )
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
