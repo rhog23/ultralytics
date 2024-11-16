@@ -44,4 +44,4 @@ head:
 - [ -1, 3, C2fCIB, [ 512, True, True ] ] # 23 (P4/16-medium)
 - [ -1, 1, GAM, [ 512 ] ] # 24
 
-- [ [ 16, 20, 24 ], 1, v10Detect, [ nc ] ] # Detect(P3, P4, P5)
+- [ [ 16, 20, 24 ], 1, v10Detect, [ nc ] ] # Detect(P2, P3, P4)
