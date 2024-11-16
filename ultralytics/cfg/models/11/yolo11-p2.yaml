@@ -13,7 +13,8 @@ scales:
   x: [ 1.00, 1.50, 512 ] # summary: 631 layers, 56966176 parameters, 56966160 gradients, 196.0 GFLOPs
 
 # summary p2
-# YOLO11s-p2 summary: 355 layers, 9,229,104 parameters, 9,229,088 gradients, 29.3 GFLOPs
+# YOLO11n-p2 summary: 379 layers, 2,740,032 parameters, 2,740,016 gradients, 11.4 GFLOPs
+# YOLO11s-p2 summary: 379 layers, 9,625,968 parameters, 9,625,952 gradients, 29.7 GFLOPs
 # YOLO11m-p2 summary: 481 layers, 20,155,136 parameters, 20,155,120 gradients, 88.6 GFLOPs
 # YOLO11l-p2 summary: 753 layers, 25,680,384 parameters, 25,680,368 gradients, 113.2 GFLOPs
 # YOLO11x-p2 summary: 753 layers, 57,154,720 parameters, 57,154,704 gradients, 244.6 GFLOPs
@@ -59,4 +60,4 @@ head:
 - [ [ -1, 10 ], 1, Concat, [ 1 ] ] # 27 cat head P5
 - [ -1, 2, C3k2, [ 1024, True ] ] # 28 (P5/32-large)
 
-- [ [ 19, 22, 25 ], 1, Detect, [ nc ] ] # Detect(P3, P4, P5)
+- [ [ 19, 22, 25, 28 ], 1, Detect, [ nc ] ] # Detect(P2, P3, P4, P5)

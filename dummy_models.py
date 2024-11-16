@@ -1,6 +1,6 @@
 from ultralytics.nn.tasks import DetectionModel
 
-det_model = DetectionModel(cfg="yolov9s.yaml")
+det_model = DetectionModel(cfg="yolo11n-p2.yaml")
 # det_model.info()
 
 # from ultralytics import YOLO
