@@ -1074,8 +1074,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     """Parse a YOLO model.yaml dictionary into a PyTorch model."""
     import ast
 
-    print(f"CH in parse model: {ch}")
-
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
@@ -1085,6 +1083,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     )
     if scales:
         scale = d.get("scale")
+        print(f"SCALE: {scale}")
         if not scale:
             scale = tuple(scales.keys())[0]
             LOGGER.warning(
