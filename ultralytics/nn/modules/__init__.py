@@ -56,7 +56,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    SP2D,
+    SPD,
 )
 from .conv import (
     CBAM,
@@ -170,7 +170,7 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
-    "SP2D",
+    "SPD",
     "GAM",
     "EMA",
 )

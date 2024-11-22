@@ -50,6 +50,7 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "SPD",
 )
 
 
@@ -1210,7 +1211,7 @@ class SCDown(nn.Module):
         return self.cv2(self.cv1(x))
 
 
-class SP2D(nn.Module):
+class SPD(nn.Module):
     """Implementation of Space to Depth Layer
     `source`: https://github.com/LabSAINT/SPD-Conv
     """
@@ -1272,6 +1273,7 @@ class C2fSimAM(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
 
 class C2fCBAM(nn.Module):
     """Faster Implementation of CSP Bottleneck with 2 convolutions."""
