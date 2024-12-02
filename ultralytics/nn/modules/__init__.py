@@ -56,6 +56,9 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    RCAN,
+    C3ResAtnMHSA,
+    MHSA,
 )
 from .conv import (
     CBAM,
@@ -71,8 +74,18 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    ConcatFusionFactor,
 )
-from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect, v10Detect
+from .head import (
+    OBB,
+    Classify,
+    Detect,
+    Pose,
+    RTDETRDecoder,
+    Segment,
+    WorldDetect,
+    v10Detect,
+)
 from .transformer import (
     AIFI,
     MLP,
@@ -156,4 +169,8 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
+    "RCAN",
+    "C3ResAtnMHSA",
+    "ConcatFusionFactor",
+    "MHSA",
 )
