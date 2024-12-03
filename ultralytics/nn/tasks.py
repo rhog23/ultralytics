@@ -45,6 +45,7 @@ from ultralytics.nn.modules import (
     Detect,
     DWConv,
     DWConvTranspose2d,
+    LightConv,
     Focus,
     GhostBottleneck,
     GhostConv,
@@ -1115,6 +1116,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         if m in {
             Classify,
             Conv,
+            LightConv,
             ConvTranspose,
             GhostConv,
             Bottleneck,
