@@ -31,6 +31,7 @@ from ultralytics.nn.modules import (
     C2fAttn,
     C2fCIB,
     C2fPSA,
+    C2fCBAM,
     C3Ghost,
     C3k2,
     C3x,
@@ -1145,6 +1146,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             PSA,
             SCDown,
             C2fCIB,
+            C2fCBAM,
             GAM,
             EMA,
         }:

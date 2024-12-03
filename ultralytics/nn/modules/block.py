@@ -21,6 +21,7 @@ __all__ = (
     "C3",
     "C2f",
     "C2fAttn",
+    "C2fCBAM",
     "ImagePoolingAttn",
     "ContrastiveHead",
     "BNContrastiveHead",
@@ -1276,7 +1277,7 @@ class C2fSimAM(nn.Module):
 
 
 class C2fCBAM(nn.Module):
-    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+    """Modification to the C2f module by incorporating Convolutional Block Attention Module (CBAM) to its BottleNeck"""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         """Initializes a CSP bottleneck with 2 convolutions and n Bottleneck blocks for faster processing."""
