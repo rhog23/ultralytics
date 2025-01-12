@@ -881,7 +881,9 @@ PROC_DEVICE_MODEL = (
 PROC_DEVICE_MODEL = (
     read_device_model()
 )  # is_jetson() and is_raspberrypi() depend on this constant
-DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+DEVICE_MODEL = (
+    read_device_model()
+)  # is_jetson() and is_raspberrypi() depend on this constant
 
 ONLINE = is_online()
 IS_COLAB = is_colab()
@@ -1223,7 +1225,9 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        contents = json.dumps(
+            dict(self), indent=2, ensure_ascii=False, default=self._json_default
+        )
         return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
@@ -1358,7 +1362,6 @@ class SettingsManager(JSONDict):
             if not isinstance(v, t):
                 raise TypeError(
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
-
                 )
         super().update(*args, **kwargs)
 
@@ -1378,15 +1381,12 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
-
     url = (
         Path(url).as_posix().replace(":/", "://")
     )  # Pathlib turns :// -> :/, as_posix() for Windows
-    return urllib.parse.unquote(url).split("?")[
+    return unquote(url).split("?")[
         0
     ]  # '%2F' to '/', split https://url.com/file.txt?auth
-    url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):
