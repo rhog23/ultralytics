@@ -947,6 +947,9 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 DEVICE_MODEL = (
     read_device_model()
 )  # is_jetson() and is_raspberrypi() depend on this constant
+=======
+DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+>>>>>>> upstream/main
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1465,12 +1468,17 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
+<<<<<<< HEAD
     url = (
         Path(url).as_posix().replace(":/", "://")
     )  # Pathlib turns :// -> :/, as_posix() for Windows
     return unquote(url).split("?")[
         0
     ]  # '%2F' to '/', split https://url.com/file.txt?auth
+=======
+    url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
+    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+>>>>>>> upstream/main
 
 
 def url2file(url):
