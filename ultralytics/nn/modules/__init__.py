@@ -57,9 +57,10 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
-    TorchVision,
     SPD,
+    TorchVision,
 )
+
 from .conv import (
     CBAM,
     ChannelAttention,
@@ -76,6 +77,8 @@ from .conv import (
     SpatialAttention,
     EMA,
     SimAM,
+    Index,
+    GAM,
 )
 from .head import (
     OBB,
@@ -171,4 +174,6 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
+    "Index",
+    "TorchVision",
 )

@@ -21,10 +21,10 @@ __all__ = (
     "CBAM",
     "Concat",
     "RepConv",
-    "Index",
     "GAM",
     "EMA",
     "SimAM",
+    "Index",
 )
 
 
@@ -398,3 +398,154 @@ class Concat(nn.Module):
     def forward(self, x):
         """Forward pass for the YOLOv8 mask Proto module."""
         return torch.cat(x, self.d)
+
+
+class GAM(nn.Module):
+    """
+    Global Attention Mechanism module.
+    Implementation from: https://arxiv.org/pdf/2112.05561
+    """
+
+    def __init__(self, c1, c2, g=True, rate=4):
+        """_summary_
+
+        Args:
+            c1 (int): in channels
+            c2 (int): out channels
+            g (bool, optional): group. Defaults to True.
+            rate (int, optional): rate. Defaults to 4.
+
+        Note:
+            in channels and out channels must have the same value
+        """
+        super().__init__()
+        self.c_ = c1 // rate
+        # Channel Attention [with two-layer MLP (multi-layer perceptron)]
+        # This code implements SiLU, which differs from the original of using ReLU
+        self.ch_att = nn.Sequential(
+            nn.Linear(c1, self.c_), nn.SiLU(), nn.Linear(self.c_, c1)
+        )
+
+        # Spatial Attention
+        self.sp_att = nn.Sequential(
+            Conv(c1, self.c_, k=7, p=3, g=rate) if g else Conv(c1, self.c_, k=7, p=3),
+            (
+                Conv(self.c_, c2, k=7, p=3, g=rate, act=False)
+                if g
+                else Conv(self.c_, c2, k=7, p=3)
+            ),
+        )
+
+    def forward(self, x):
+        b, c, h, w = x.shape  # batch, channels, height, width
+        x_permute = x.permute(0, 2, 3, 1).view(
+            b, -1, c
+        )  # transforming the input into b, h, w, c then flattens into (b, h*w, c)
+        ch_att_result = (
+            self.ch_att(x_permute).view(b, h, w, c).permute(0, 3, 1, 2)
+        )  # channel attention result
+        x = x * ch_att_result  # element-wise multiplication between mc(x) and x
+
+        sp_att_result = self.sp_att(x).sigmoid()
+        shuff_res = channel_shuffle(sp_att_result, groups=4)
+        out = x * shuff_res
+        return out
+
+
+class EMA(nn.Module):
+    """Implementation of Efficient Multi-Scale Attention Module with Cross-Spatial Learning
+    paper: https://arxiv.org/abs/2305.13563 | https://dx.doi.org/10.17023/kxgj-d755
+    Github: https://github.com/YOLOonMe/EMA-attention-module
+    """
+
+    def __init__(self, channels, c2=None, factor=32):
+        super().__init__()
+        self.g = factor  # groups
+        self.c_ = channels // self.g
+        assert self.c_ > 0  # checks whether the channels' value is multiples of 32
+        self.softmax = nn.Softmax(-1)
+        self.avgp = nn.AdaptiveAvgPool2d((1, 1))
+        self.pool_h = nn.AdaptiveAvgPool2d((None, 1))  # pooling layer in height
+        self.pool_w = nn.AdaptiveAvgPool2d((1, None))  # pooling layer in width
+        self.gn = nn.GroupNorm(self.c_, self.c_)
+        self.conv1x1 = nn.Conv2d(self.c_, self.c_, kernel_size=1, stride=1, padding=0)
+        self.conv3x3 = nn.Conv2d(self.c_, self.c_, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, x):
+        b, c, h, w = x.size()
+        group_x = x.reshape(b * self.g, -1, h, w)  # b*g, c//g, h, w
+        # logging.info(f"batch: {b} | Group X: {group_x.shape}")
+        x_h = self.pool_h(group_x)
+        x_w = self.pool_w(group_x).permute(0, 1, 3, 2)
+        hw = self.conv1x1(torch.cat([x_h, x_w], dim=2))
+        x_h, x_w = torch.split(hw, [h, w], dim=2)
+        x1 = self.gn(group_x * x_h.sigmoid() * x_w.permute(0, 1, 3, 2).sigmoid())
+        x2 = self.conv3x3(group_x)
+        x11 = self.softmax(self.avgp(x1).reshape(b * self.g, -1, 1).permute(0, 2, 1))
+        x12 = x2.reshape(b * self.g, self.c_, -1)  # b*g, c//g, hw
+        x21 = self.softmax(self.avgp(x2).reshape(b * self.g, -1, 1).permute(0, 2, 1))
+        x22 = x1.reshape(b * self.g, self.c_, -1)  # b*g, c//g, hw
+        weights = (torch.matmul(x11, x12) + torch.matmul(x21, x22)).reshape(
+            b * self.g, 1, h, w
+        )
+        return (group_x * weights.sigmoid()).reshape(b, c, h, w)
+
+
+class SimAM(nn.Module):
+    """Implementation of SimAM (Simple, Parameter-Free Attention)  Module
+
+    reference: `https://www.mendeley.com/reference-manager/reader/ac8708cd-f6e7-3e08-a52f-6f75b9b7bb6b/2e473464-927b-381d-07d1-5320bca901e7/`
+
+    code ref: `https://github.com/ZjjConan/SimAM`
+    """
+
+    def __init__(self, c1=None, e_lambda=1e-4):
+        super().__init__()
+        # self.act = nn.Sigmoid()
+        self.act = nn.SiLU()
+        self.e_lambda = e_lambda
+
+    def forward(self, x):
+        """_summary_
+
+        Args:
+            x (torch.tensor): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        _, _, h, w = x.size()
+
+        n = w * h - 1  # number of neurons on the channel
+
+        x_minus_mu_square = (x - x.mean(dim=[2, 3], keepdim=True)).pow(
+            2
+        )  # square of (t - u)
+
+        y = (
+            x_minus_mu_square
+            / (
+                4
+                * (x_minus_mu_square.sum(dim=[2, 3], keepdim=True) / n + self.e_lambda)
+            )
+            + 0.5
+        )  #
+
+        return x * self.act(y)  # attended features
+
+
+class Index(nn.Module):
+    """Returns a particular index of the input."""
+
+    def __init__(self, c1, c2, index=0):
+        """Returns a particular index of the input."""
+        super().__init__()
+        self.index = index
+
+    def forward(self, x):
+        """
+        Forward pass.
+
+        Expects a list of tensors as input.
+        """
+        return x[self.index]

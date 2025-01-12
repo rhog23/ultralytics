@@ -1211,3 +1211,131 @@ class SCDown(nn.Module):
     def forward(self, x):
         """Applies convolution and downsampling to the input tensor in the SCDown module."""
         return self.cv2(self.cv1(x))
+
+
+class C2fCBAM(nn.Module):
+    """Faster Implementation of CSP Bottleneck with 2 convolutions.
+    Implemented in YOLOv8"""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
+        """Faster implementation of CSP Bottleneck with 2 convolutions.
+
+        Args:
+            c1 (torch.Tensor): the number of input channels.
+            c2 (torch.Tensor): the number of output channels.
+            n (int, optional): the number of `Bottleneck` layers (repeated `n` times). Defaults to 1.
+            shortcut (bool, optional): Whether to use residual shortcuts in the `Bottleneck`. Defaults to False.
+            g (int, optional): Group convolution parameter. Defaults to 1.
+            e (float, optional): Expansion factor, which determines the hidden channel size. Defaults to .5.
+        """
+
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)
+        self.m = nn.ModuleList(
+            BottleneckCBAM(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0)
+            for _ in range(n)
+        )
+
+    def forward(self, x):
+        """Forward pass through C2f layer."""
+        # Step 1: Applies the first conv to the input
+        x = self.cv1(x)  # applies Conv to the input
+        # print(f"X shape after first convolution: {x.shape}") # [INFO]
+
+        # Step 2: Split the input feature map into two chunks
+        # y = list(self.cv1(x).chunk(2, 1))  # split into two along channel dimension
+        """divides the input feature map into two chunks. 
+        e.g if input shape is (1, 256, 32, 32), then y = [torch.Tensor(1, 128, 32, 32,), torch.Tensor(1, 128, 32, 32,)]"""
+        y = list(x.chunk(2, 1))
+        # print(len(y), y[0].shape) # [INFO]
+
+        # Step 3: Process one part through the bottleneck layers
+        y.extend(m(y[-1]) for m in self.m)  # bottleneck processing
+
+        # Step 4: Concatenate both parts (processed and unprocessed)
+        return self.cv2(
+            torch.cat(y, 1)
+        )  # concatenate along the channel dimension and pass through final conv
+
+    def forward_split(self, x):
+        """Forward pass using split() instead of chunk()."""
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class TorchVision(nn.Module):
+    """
+    TorchVision module to allow loading any torchvision model.
+
+    This class provides a way to load a model from the torchvision library, optionally load pre-trained weights, and customize the model by truncating or unwrapping layers.
+
+    Attributes:
+        m (nn.Module): The loaded torchvision model, possibly truncated and unwrapped.
+
+    Args:
+        c1 (int): Input channels.
+        c2 (): Output channels.
+        model (str): Name of the torchvision model to load.
+        weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
+        unwrap (bool, optional): If True, unwraps the model to a sequential containing all but the last `truncate` layers. Default is True.
+        truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 2.
+        split (bool, optional): Returns output from intermediate child modules as list. Default is False.
+    """
+
+    def __init__(
+        self, c1, c2, model, weights="DEFAULT", unwrap=True, truncate=2, split=False
+    ):
+        """Load the model and weights from torchvision."""
+        import torchvision
+
+        super().__init__()
+        if hasattr(torchvision.models, "get_model"):
+            self.m = torchvision.models.get_model(model, weights=weights)
+        else:
+            self.m = torchvision.models.__dict__[model](pretrained=bool(weights))
+        if unwrap:
+            layers = list(self.m.children())[:-truncate]
+            if isinstance(
+                layers[0], nn.Sequential
+            ):  # Second-level for some models like EfficientNet, Swin
+                layers = [*list(layers[0].children()), *layers[1:]]
+            self.m = nn.Sequential(*layers)
+            self.split = split
+        else:
+            self.split = False
+            self.m.head = self.m.heads = nn.Identity()
+
+    def forward(self, x):
+        """Forward pass through the model."""
+        if self.split:
+            y = [x]
+            y.extend(m(y[-1]) for m in self.m)
+        else:
+            y = self.m(x)
+        return y
+
+
+class SPD(nn.Module):
+    def __init__(self, dimension=1):
+        super().__init__()
+        self.d = dimension
+
+    def forward(self, x):
+        blue_fm = x[..., ::2, ::2]  # top-left
+        yelow_fm = x[..., 1::2, ::2]  # bottom-left
+        red_fm = x[..., ::2, 1::2]  # top-right
+        green_fm = x[..., 1::2, 1::2]  # bottom-right
+
+        print(x[..., ::2, ::2].shape)
+        print(blue_fm)
+        print(x[..., 1::2, ::2].shape)
+        print(yelow_fm)
+        print(x[..., ::2, 1::2].shape)
+        print(red_fm)
+        print(x[..., 1::2, 1::2].shape)
+        print(green_fm)
+
+        return torch.cat([blue_fm, yelow_fm, red_fm, green_fm], 1)

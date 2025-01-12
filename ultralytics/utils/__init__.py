@@ -875,19 +875,14 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
-<<<<<<< HEAD
 PROC_DEVICE_MODEL = (
     read_device_model()
 )  # is_jetson() and is_raspberrypi() depend on this constant
-=======
-<<<<<<< HEAD
 PROC_DEVICE_MODEL = (
     read_device_model()
 )  # is_jetson() and is_raspberrypi() depend on this constant
-=======
 DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
->>>>>>> upstream/main
->>>>>>> main
+
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1362,15 +1357,8 @@ class SettingsManager(JSONDict):
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(
-<<<<<<< HEAD
-                    f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}"
-=======
-<<<<<<< HEAD
-                    f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}"
-=======
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
->>>>>>> upstream/main
->>>>>>> main
+
                 )
         super().update(*args, **kwargs)
 
@@ -1390,23 +1378,15 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> main
+
     url = (
         Path(url).as_posix().replace(":/", "://")
     )  # Pathlib turns :// -> :/, as_posix() for Windows
     return urllib.parse.unquote(url).split("?")[
         0
     ]  # '%2F' to '/', split https://url.com/file.txt?auth
-<<<<<<< HEAD
-=======
-=======
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
     return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
->>>>>>> upstream/main
->>>>>>> main
 
 
 def url2file(url):
