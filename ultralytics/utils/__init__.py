@@ -12,7 +12,7 @@ import subprocess
 import sys
 import threading
 import time
-import warnings
+import uuid
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -815,7 +815,9 @@ def read_device_model() -> str:
 
     Returns:
         (str): Kernel release information.
+        (str): Kernel release information.
     """
+    return platform.release().lower()
     return platform.release().lower()
 
 
@@ -901,6 +903,7 @@ def is_raspberrypi() -> bool:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
     return "rpi" in DEVICE_MODEL
+    return "rpi" in DEVICE_MODEL
 
 
 def is_jetson() -> bool:
@@ -910,6 +913,7 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
+    return "tegra" in DEVICE_MODEL
     return "tegra" in DEVICE_MODEL
 
 
@@ -1120,9 +1124,13 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
+<<<<<<< HEAD
 PROC_DEVICE_MODEL = (
     read_device_model()
 )  # is_jetson() and is_raspberrypi() depend on this constant
+=======
+DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+>>>>>>> upstream/main
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1493,6 +1501,8 @@ class JSONDict(dict):
         """Return a pretty-printed JSON string representation of the dictionary."""
         contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
         return f'JSONDict("{self.file_path}"):\n{contents}'
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
         """Update the dictionary and persist changes."""
@@ -1613,21 +1623,25 @@ class SettingsManager(JSONDict):
             )
 
     def __setitem__(self, key, value):
-        """Update one key: value pair."""
+        """Updates one key: value pair."""
         self.update({key: value})
 
     def update(self, *args, **kwargs):
-        """Update settings, validating keys and types."""
+        """Updates settings, validating keys and types."""
         for arg in args:
             if isinstance(arg, dict):
-                kwargs.update(arg)
+                kwargs |= arg
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(
+<<<<<<< HEAD
                     f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}"
+=======
+                    f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
+>>>>>>> upstream/main
                 )
         super().update(*args, **kwargs)
 
@@ -1647,12 +1661,17 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
+<<<<<<< HEAD
     url = (
         Path(url).as_posix().replace(":/", "://")
     )  # Pathlib turns :// -> :/, as_posix() for Windows
     return urllib.parse.unquote(url).split("?")[
         0
     ]  # '%2F' to '/', split https://url.com/file.txt?auth
+=======
+    url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
+    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+>>>>>>> upstream/main
 
 
 def url2file(url):
