@@ -53,13 +53,19 @@ AUTOINSTALL = (
 )  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 LOGGING_NAME = "ultralytics"
-MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
+MACOS, LINUX, WINDOWS = (
+    platform.system() == x for x in ["Darwin", "Linux", "Windows"]
+)  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
 NOT_MACOS14 = not (MACOS and MACOS_VERSION.startswith("14."))
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
-TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
-TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+TORCH_VERSION = str(
+    torch.__version__
+)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
+TORCHVISION_VERSION = importlib.metadata.version(
+    "torchvision"
+)  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 RKNN_CHIPS = frozenset(
     {
@@ -221,7 +227,12 @@ class DataExportMixin:
                     return str(v)
 
             df_str = df.select(
-                [pl.col(c).map_elements(_to_str_simple, return_dtype=pl.String).alias(c) for c in df.columns]
+                [
+                    pl.col(c)
+                    .map_elements(_to_str_simple, return_dtype=pl.String)
+                    .alias(c)
+                    for c in df.columns
+                ]
             )
             return df_str.write_csv()
 
@@ -482,7 +493,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
 
 # Set logger
-LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+LOGGER = set_logging(
+    LOGGING_NAME, verbose=VERBOSE
+)  # define globally (used in train.py, val.py, predict.py, etc.)
 logging.getLogger("sentry_sdk").setLevel(logging.CRITICAL + 1)
 
 
@@ -600,19 +613,22 @@ class YAML:
         with open(file, "w", errors="ignore", encoding="utf-8") as f:
             if header:
                 f.write(header)
-            instance.yaml.dump(data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper)
+            instance.yaml.dump(
+                data, f, sort_keys=False, allow_unicode=True, Dumper=instance.SafeDumper
+            )
 
     @classmethod
     def load(cls, file="data.yaml", append_filename=False):
         """Load YAML file to Python object with robust error handling.
 
-        Args:
-            file (str | Path): Path to YAML file.
-            append_filename (bool): Whether to add filename to returned dict.
+            Args:
+                file (str | Path): Path to YAML file.
+                append_filename (bool): Whether to add filename to returned dict.
 
-    Returns:
-        (dict): YAML data and file name.
-    """
+        Returns:
+            (dict): YAML data and file name.
+        """
+
     assert Path(file).suffix in {
         ".yaml",
         ".yml",
@@ -640,12 +656,13 @@ class YAML:
     def print(cls, yaml_file):
         """Pretty print YAML file or object to console.
 
-    Args:
-        yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
+        Args:
+            yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
-    Returns:
-        (None)
-    """
+        Returns:
+            (None)
+        """
+
     yaml_dict = (
         yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
     )
@@ -767,7 +784,11 @@ def is_jetson(jetpack=None) -> bool:
         if jetpack:
             try:
                 content = open("/etc/nv_tegra_release").read()
-                version_map = {4: "R32", 5: "R35", 6: "R36"}  # JetPack to L4T major version mapping
+                version_map = {
+                    4: "R32",
+                    5: "R35",
+                    6: "R36",
+                }  # JetPack to L4T major version mapping
                 return jetpack in version_map and version_map[jetpack] in content
             except Exception:
                 return False
@@ -923,7 +944,9 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
-DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+DEVICE_MODEL = (
+    read_device_model()
+)  # is_jetson() and is_raspberrypi() depend on this constant
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1281,9 +1304,13 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
-        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        contents = json.dumps(
+            dict(self), indent=2, ensure_ascii=False, default=self._json_default
+        )
         return f'JSONDict("{self.file_path}"):\n{contents}'
-        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        contents = json.dumps(
+            dict(self), indent=2, ensure_ascii=False, default=self._json_default
+        )
         return f'JSONDict("{self.file_path}"):\n{contents}'
 
     def update(self, *args, **kwargs):
@@ -1333,7 +1360,9 @@ class SettingsManager(JSONDict):
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT.root or Path()
-        datasets_root = (root.parent if GIT.root and is_dir_writeable(root.parent) else root).resolve()
+        datasets_root = (
+            root.parent if GIT.root and is_dir_writeable(root.parent) else root
+        ).resolve()
 
         self.file = Path(file)
         self.version = version
@@ -1436,8 +1465,12 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
-    url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    url = (
+        Path(url).as_posix().replace(":/", "://")
+    )  # Pathlib turns :// -> :/, as_posix() for Windows
+    return unquote(url).split("?")[
+        0
+    ]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):
