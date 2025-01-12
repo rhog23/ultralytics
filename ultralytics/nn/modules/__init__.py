@@ -57,6 +57,7 @@ from .block import (
     RepVGGDW,
     ResNetLayer,
     SCDown,
+    TorchVision,
     SPD,
 )
 from .conv import (
@@ -70,7 +71,6 @@ from .conv import (
     DWConvTranspose2d,
     Focus,
     GhostConv,
-    GAM,
     LightConv,
     RepConv,
     SpatialAttention,
@@ -171,8 +171,4 @@ __all__ = (
     "C2fCIB",
     "Attention",
     "PSA",
-    "SCDown",
-    "SPD",
-    "GAM",
-    "EMA",
 )
