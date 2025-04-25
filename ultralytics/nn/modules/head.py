@@ -101,7 +101,16 @@ class Detect(nn.Module):
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps."""
         # Inference path
         shape = x[0].shape  # BCHW
+        
+        print(f"x0 ~ shape: {x[0].shape}")
+        print(f"x1: {x[1].shape}")
+        print(f"x2: {x[2].shape}")
+        print(f"self nc: {self.nc}")
+        print(f"self no: {self.no}")
+        print(f"self reg max: {self.reg_max}")
+        
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        print(f"x_cat: {x_cat.shape}")
         if self.format != "imx" and (self.dynamic or self.shape != shape):
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape

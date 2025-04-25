@@ -1329,13 +1329,14 @@ class SPD(nn.Module):
         red_fm = x[..., ::2, 1::2]  # top-right
         green_fm = x[..., 1::2, 1::2]  # bottom-right
 
-        print(x[..., ::2, ::2].shape)
-        print(blue_fm)
-        print(x[..., 1::2, ::2].shape)
-        print(yelow_fm)
-        print(x[..., ::2, 1::2].shape)
-        print(red_fm)
-        print(x[..., 1::2, 1::2].shape)
-        print(green_fm)
+        # Logger purpose
+        # print(x[..., ::2, ::2].shape)
+        # print(blue_fm)
+        # print(x[..., 1::2, ::2].shape)
+        # print(yelow_fm)
+        # print(x[..., ::2, 1::2].shape)
+        # print(red_fm)
+        # print(x[..., 1::2, 1::2].shape)
+        # print(green_fm)
 
         return torch.cat([blue_fm, yelow_fm, red_fm, green_fm], 1)
