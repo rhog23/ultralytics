@@ -40,6 +40,10 @@ ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 DEFAULT_SOL_CFG_PATH = (
     ROOT / "cfg/solutions/default.yaml"
 )  # Ultralytics solutions yaml path
@@ -49,12 +53,30 @@ NUM_THREADS = min(
 AUTOINSTALL = (
     str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"
 )  # global auto-install mode
+<<<<<<< HEAD
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (
     platform.system() == x for x in ["Darwin", "Linux", "Windows"]
 )  # environment booleans
+=======
+VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
+LOGGING_NAME = "ultralytics"
+MACOS, LINUX, WINDOWS = (
+    platform.system() == x for x in ["Darwin", "Linux", "Windows"]
+)  # environment booleans
+=======
+NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
+AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
+VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
+LOGGING_NAME = "ultralytics"
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
+MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
@@ -135,12 +157,17 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 np.set_printoptions(
     linewidth=320, formatter={"float_kind": "{:11.5g}".format}
 )  # format short g, %precision=5
 cv2.setNumThreads(
     0
 )  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
+<<<<<<< HEAD
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = (
     ":4096:8"  # for deterministic training to avoid CUDA warning
@@ -154,6 +181,29 @@ os.environ["TORCH_CPP_LOG_LEVEL"] = (
 os.environ["KINETO_LOG_LEVEL"] = (
     "5"  # suppress verbose PyTorch profiler output when computing FLOPs
 )
+=======
+os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = (
+    ":4096:8"  # for deterministic training to avoid CUDA warning
+)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = (
+    "3"  # suppress verbose TF compiler warnings in Colab
+)
+os.environ["TORCH_CPP_LOG_LEVEL"] = (
+    "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+)
+os.environ["KINETO_LOG_LEVEL"] = (
+    "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+)
+=======
+np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
+cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
+os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
+os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 
 if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     from tqdm import rich
@@ -202,12 +252,24 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         kwargs["disable"] = not VERBOSE or kwargs.get(
             "disable", False
         )  # logical 'and' with default value if passed
         kwargs.setdefault(
             "bar_format", TQDM_BAR_FORMAT
         )  # override default value if passed
+<<<<<<< HEAD
+=======
+=======
+        warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
+        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
+        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         super().__init__(*args, **kwargs)
 
     def __iter__(self):
@@ -763,6 +825,20 @@ class YAML:
     with open(file, errors="ignore", encoding="utf-8") as f:
         s = f.read()  # string
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    Returns:
+        (dict): YAML data and file name.
+    """
+    assert Path(file).suffix in {
+        ".yaml",
+        ".yml",
+    }, f"Attempting to load non-YAML file {file} with yaml_load()"
+    with open(file, errors="ignore", encoding="utf-8") as f:
+        s = f.read()  # string
+
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         # Remove special characters
         if not s.isprintable():
             s = re.sub(
@@ -770,11 +846,37 @@ class YAML:
                 "",
                 s,
             )
+<<<<<<< HEAD
 
         # Add YAML filename to dict and return
         data = (
             yaml.safe_load(s) or {}
         )  # always return a dict (yaml.safe_load() may return None for empty files)
+=======
+
+        # Add YAML filename to dict and return
+        data = (
+            yaml.safe_load(s) or {}
+        )  # always return a dict (yaml.safe_load() may return None for empty files)
+=======
+        # Read file content
+        with open(file, errors="ignore", encoding="utf-8") as f:
+            s = f.read()
+
+        # Try loading YAML with fallback for problematic characters
+        try:
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+        except Exception:
+            # Remove problematic characters and retry
+            s = re.sub(r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+", "", s)
+            data = instance.yaml.load(s, Loader=instance.SafeLoader) or {}
+
+        # Check for accidental user-error None strings (should be 'null' in YAML)
+        if "None" in data.values():
+            data = {k: None if v == "None" else v for k, v in data.items()}
+
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         if append_filename:
             data["yaml_file"] = str(file)
         return data
@@ -787,6 +889,13 @@ class YAML:
     Args:
         yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
+<<<<<<< HEAD
+=======
+        # Load file if path provided
+        yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
     Returns:
         (None)
     """
@@ -795,6 +904,7 @@ class YAML:
     )
     dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+<<<<<<< HEAD
 
 
 # Default configuration
@@ -805,6 +915,28 @@ DEFAULT_SOL_DICT = yaml_load(
 for k, v in DEFAULT_CFG_DICT.items():
     if isinstance(v, str) and v.lower() == "none":
         DEFAULT_CFG_DICT[k] = None
+=======
+
+
+# Default configuration
+DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+DEFAULT_SOL_DICT = yaml_load(
+    DEFAULT_SOL_CFG_PATH
+)  # Ultralytics solutions configuration
+for k, v in DEFAULT_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == "none":
+        DEFAULT_CFG_DICT[k] = None
+=======
+        # Use -1 for unlimited width in C implementation
+        dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
+
+        LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+
+
+# Default configuration
+DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
@@ -1463,9 +1595,19 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
+<<<<<<< HEAD
             print(
                 f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary."
             )
+=======
+<<<<<<< HEAD
+            print(
+                f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary."
+            )
+=======
+            LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         except Exception as e:
             LOGGER.error(f"Error reading from {self.file_path}: {e}")
 
@@ -1573,11 +1715,27 @@ class SettingsManager(JSONDict):
             "comet": True,  # Comet integration
             "dvc": True,  # DVC integration
             "hub": True,  # Ultralytics HUB integration
+<<<<<<< HEAD
             "mlflow": False,  # MLflow integration
             "neptune": False,  # Neptune integration
             "raytune": False,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": True,  # Weights & Biases logging
+=======
+<<<<<<< HEAD
+            "mlflow": False,  # MLflow integration
+            "neptune": False,  # Neptune integration
+            "raytune": False,  # Ray Tune integration
+            "tensorboard": False,  # TensorBoard logging
+            "wandb": True,  # Weights & Biases logging
+=======
+            "mlflow": True,  # MLflow integration
+            "neptune": True,  # Neptune integration
+            "raytune": True,  # Ray Tune integration
+            "tensorboard": False,  # TensorBoard logging
+            "wandb": False,  # Weights & Biases logging
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
             "vscode_msg": True,  # VSCode messaging
         }
 
@@ -1602,10 +1760,21 @@ class SettingsManager(JSONDict):
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         correct_keys = set(self.keys()) == set(self.defaults.keys())
         correct_types = all(
             isinstance(self.get(k), type(v)) for k, v in self.defaults.items()
         )
+<<<<<<< HEAD
+=======
+=======
+        correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
+        correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
