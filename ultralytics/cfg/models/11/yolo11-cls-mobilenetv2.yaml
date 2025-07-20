@@ -1,0 +1,11 @@
+# Parameters
+nc: 1000 # number of classes
+
+# MobileNetV2 backbone
+backbone:
+# [from, repeats, module, args]
+  - [-1, 1, TorchVision, [320, mobilenet_v2, DEFAULT, True, 2]] # truncate two layers from the end
+
+# YOLOv11 head
+head:
+  - [-1, 1, Classify, [nc]]
