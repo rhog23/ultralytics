@@ -12,7 +12,7 @@ import subprocess
 import sys
 import threading
 import time
-import warnings
+import uuid
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -29,7 +29,9 @@ from ultralytics.utils.patches import imread, imshow, imwrite, torch_save  # for
 
 # PyTorch Multi-GPU DDP Constants
 RANK = int(os.getenv("RANK", -1))
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+LOCAL_RANK = int(
+    os.getenv("LOCAL_RANK", -1)
+)  # https://pytorch.org/docs/stable/elastic/run.html
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -38,6 +40,34 @@ ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
 ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+DEFAULT_SOL_CFG_PATH = (
+    ROOT / "cfg/solutions/default.yaml"
+)  # Ultralytics solutions yaml path
+NUM_THREADS = min(
+    8, max(1, os.cpu_count() - 1)
+)  # number of YOLO multiprocessing threads
+AUTOINSTALL = (
+    str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"
+)  # global auto-install mode
+<<<<<<< HEAD
+VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
+LOGGING_NAME = "ultralytics"
+MACOS, LINUX, WINDOWS = (
+    platform.system() == x for x in ["Darwin", "Linux", "Windows"]
+)  # environment booleans
+=======
+VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
+TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
+LOGGING_NAME = "ultralytics"
+MACOS, LINUX, WINDOWS = (
+    platform.system() == x for x in ["Darwin", "Linux", "Windows"]
+)  # environment booleans
+=======
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = str(os.getenv("YOLO_AUTOINSTALL", True)).lower() == "true"  # global auto-install mode
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -45,10 +75,14 @@ TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar form
 LOGGING_NAME = "ultralytics"
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ["Darwin", "Linux", "Windows"])  # environment booleans
 MACOS_VERSION = platform.mac_ver()[0] if MACOS else None
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = torch.__version__
-TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+TORCHVISION_VERSION = importlib.metadata.version(
+    "torchvision"
+)  # faster than importing torchvision
 IS_VSCODE = os.environ.get("TERM_PROGRAM", False) == "vscode"
 RKNN_CHIPS = frozenset(
     {
@@ -123,12 +157,53 @@ HELP_MSG = """
 
 # Settings and Environment Variables
 torch.set_printoptions(linewidth=320, precision=4, profile="default")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+np.set_printoptions(
+    linewidth=320, formatter={"float_kind": "{:11.5g}".format}
+)  # format short g, %precision=5
+cv2.setNumThreads(
+    0
+)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
+<<<<<<< HEAD
+os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = (
+    ":4096:8"  # for deterministic training to avoid CUDA warning
+)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = (
+    "3"  # suppress verbose TF compiler warnings in Colab
+)
+os.environ["TORCH_CPP_LOG_LEVEL"] = (
+    "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+)
+os.environ["KINETO_LOG_LEVEL"] = (
+    "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+)
+=======
+os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = (
+    ":4096:8"  # for deterministic training to avoid CUDA warning
+)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = (
+    "3"  # suppress verbose TF compiler warnings in Colab
+)
+os.environ["TORCH_CPP_LOG_LEVEL"] = (
+    "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
+)
+os.environ["KINETO_LOG_LEVEL"] = (
+    "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+)
+=======
 np.set_printoptions(linewidth=320, formatter=dict(float_kind="{:11.5g}".format))  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ["NUMEXPR_MAX_THREADS"] = str(NUM_THREADS)  # NumExpr max threads
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"  # suppress verbose TF compiler warnings in Colab
 os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"  # suppress "NNPACK.cpp could not initialize NNPACK" warnings
 os.environ["KINETO_LOG_LEVEL"] = "5"  # suppress verbose PyTorch profiler output when computing FLOPs
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 
 if TQDM_RICH := str(os.getenv("YOLO_TQDM_RICH", False)).lower() == "true":
     from tqdm import rich
@@ -177,9 +252,24 @@ class TQDM(rich.tqdm if TQDM_RICH else tqdm.tqdm):
             ...     # Your code here
             ...     pass
         """
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+        kwargs["disable"] = not VERBOSE or kwargs.get(
+            "disable", False
+        )  # logical 'and' with default value if passed
+        kwargs.setdefault(
+            "bar_format", TQDM_BAR_FORMAT
+        )  # override default value if passed
+<<<<<<< HEAD
+=======
+=======
         warnings.filterwarnings("ignore", category=tqdm.TqdmExperimentalWarning)  # suppress tqdm.rich warning
         kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)
         kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         super().__init__(*args, **kwargs)
 
     def __iter__(self):
@@ -379,7 +469,10 @@ class SimpleClass:
                 else:
                     s = f"{a}: {repr(v)}"
                 attr.append(s)
-        return f"{self.__module__}.{self.__class__.__name__} object with attributes:\n\n" + "\n".join(attr)
+        return (
+            f"{self.__module__}.{self.__class__.__name__} object with attributes:\n\n"
+            + "\n".join(attr)
+        )
 
     def __repr__(self):
         """Return a machine-readable string representation of the object."""
@@ -388,7 +481,9 @@ class SimpleClass:
     def __getattr__(self, attr):
         """Provide a custom attribute access error message with helpful information."""
         name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+        raise AttributeError(
+            f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}"
+        )
 
 
 class IterableSimpleNamespace(SimpleNamespace):
@@ -487,7 +582,9 @@ def plt_settings(rcparams=None, backend="Agg"):
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
-                plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
+                plt.close(
+                    "all"
+                )  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
             # Plot with backend and always revert to original backend
@@ -531,7 +628,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
         - The function sets up a StreamHandler with the appropriate formatter and level.
         - The logger's propagate flag is set to False to prevent duplicate logging in parent loggers.
     """
-    level = logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR  # rank in world for Multi-GPU trainings
+    level = (
+        logging.INFO if verbose and RANK in {-1, 0} else logging.ERROR
+    )  # rank in world for Multi-GPU trainings
 
     class PrefixFormatter(logging.Formatter):
         def format(self, record):
@@ -578,7 +677,9 @@ def set_logging(name="LOGGING_NAME", verbose=True):
 
 
 # Set logger
-LOGGER = set_logging(LOGGING_NAME, verbose=VERBOSE)  # define globally (used in train.py, val.py, predict.py, etc.)
+LOGGER = set_logging(
+    LOGGING_NAME, verbose=VERBOSE
+)  # define globally (used in train.py, val.py, predict.py, etc.)
 for logger in "sentry_sdk", "urllib3.connectionpool":
     logging.getLogger(logger).setLevel(logging.CRITICAL + 1)
 
@@ -711,12 +812,50 @@ class YAML:
             file (str | Path): Path to YAML file.
             append_filename (bool): Whether to add filename to returned dict.
 
-        Returns:
-            (dict): Loaded YAML content.
-        """
-        instance = cls._get_instance()
-        assert str(file).endswith((".yaml", ".yml")), f"Not a YAML file: {file}"
+    Returns:
+        (dict): YAML data and file name.
+    """
+    assert Path(file).suffix in {
+        ".yaml",
+        ".yml",
+    }, f"Attempting to load non-YAML file {file} with yaml_load()"
+    with open(file, errors="ignore", encoding="utf-8") as f:
+        s = f.read()  # string
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    Returns:
+        (dict): YAML data and file name.
+    """
+    assert Path(file).suffix in {
+        ".yaml",
+        ".yml",
+    }, f"Attempting to load non-YAML file {file} with yaml_load()"
+    with open(file, errors="ignore", encoding="utf-8") as f:
+        s = f.read()  # string
+
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+        # Remove special characters
+        if not s.isprintable():
+            s = re.sub(
+                r"[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+",
+                "",
+                s,
+            )
+<<<<<<< HEAD
+
+        # Add YAML filename to dict and return
+        data = (
+            yaml.safe_load(s) or {}
+        )  # always return a dict (yaml.safe_load() may return None for empty files)
+=======
+
+        # Add YAML filename to dict and return
+        data = (
+            yaml.safe_load(s) or {}
+        )  # always return a dict (yaml.safe_load() may return None for empty files)
+=======
         # Read file content
         with open(file, errors="ignore", encoding="utf-8") as f:
             s = f.read()
@@ -733,6 +872,8 @@ class YAML:
         if "None" in data.values():
             data = {k: None if v == "None" else v for k, v in data.items()}
 
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         if append_filename:
             data["yaml_file"] = str(file)
         return data
@@ -742,14 +883,47 @@ class YAML:
         """
         Pretty print YAML file or object to console.
 
-        Args:
-            yaml_file (str | Path | dict): Path to YAML file or dict to print.
-        """
-        instance = cls._get_instance()
+    Args:
+        yaml_file: The file path of the YAML file or a YAML-formatted dictionary.
 
+<<<<<<< HEAD
+=======
         # Load file if path provided
         yaml_dict = cls.load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
 
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+    Returns:
+        (None)
+    """
+    yaml_dict = (
+        yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    )
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=float("inf"))
+    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+<<<<<<< HEAD
+
+
+# Default configuration
+DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+DEFAULT_SOL_DICT = yaml_load(
+    DEFAULT_SOL_CFG_PATH
+)  # Ultralytics solutions configuration
+for k, v in DEFAULT_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == "none":
+        DEFAULT_CFG_DICT[k] = None
+=======
+
+
+# Default configuration
+DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+DEFAULT_SOL_DICT = yaml_load(
+    DEFAULT_SOL_CFG_PATH
+)  # Ultralytics solutions configuration
+for k, v in DEFAULT_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == "none":
+        DEFAULT_CFG_DICT[k] = None
+=======
         # Use -1 for unlimited width in C implementation
         dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
 
@@ -758,6 +932,8 @@ class YAML:
 
 # Default configuration
 DEFAULT_CFG_DICT = YAML.load(DEFAULT_CFG_PATH)
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
@@ -768,7 +944,9 @@ def read_device_model() -> str:
 
     Returns:
         (str): Kernel release information.
+        (str): Kernel release information.
     """
+    return platform.release().lower()
     return platform.release().lower()
 
 
@@ -803,7 +981,10 @@ def is_kaggle():
     Returns:
         (bool): True if running inside a Kaggle kernel, False otherwise.
     """
-    return os.environ.get("PWD") == "/kaggle/working" and os.environ.get("KAGGLE_URL_BASE") == "https://www.kaggle.com"
+    return (
+        os.environ.get("PWD") == "/kaggle/working"
+        and os.environ.get("KAGGLE_URL_BASE") == "https://www.kaggle.com"
+    )
 
 
 def is_jupyter():
@@ -851,6 +1032,7 @@ def is_raspberrypi() -> bool:
         (bool): True if running on a Raspberry Pi, False otherwise.
     """
     return "rpi" in DEVICE_MODEL
+    return "rpi" in DEVICE_MODEL
 
 
 def is_jetson() -> bool:
@@ -860,6 +1042,7 @@ def is_jetson() -> bool:
     Returns:
         (bool): True if running on an NVIDIA Jetson device, False otherwise.
     """
+    return "tegra" in DEVICE_MODEL
     return "tegra" in DEVICE_MODEL
 
 
@@ -871,7 +1054,9 @@ def is_online() -> bool:
         (bool): True if connection is successful, False otherwise.
     """
     try:
-        assert str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"  # check if ENV var YOLO_OFFLINE="True"
+        assert (
+            str(os.getenv("YOLO_OFFLINE", "")).lower() != "true"
+        )  # check if ENV var YOLO_OFFLINE="True"
         import socket
 
         for dns in ("1.1.1.1", "8.8.8.8"):  # check Cloudflare and Google DNS
@@ -920,7 +1105,11 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    return ("PYTEST_CURRENT_TEST" in os.environ) or ("pytest" in sys.modules) or ("pytest" in Path(ARGV[0]).stem)
+    return (
+        ("PYTEST_CURRENT_TEST" in os.environ)
+        or ("pytest" in sys.modules)
+        or ("pytest" in Path(ARGV[0]).stem)
+    )
 
 
 def is_github_action_running() -> bool:
@@ -930,7 +1119,11 @@ def is_github_action_running() -> bool:
     Returns:
         (bool): True if the current environment is a GitHub Actions runner, False otherwise.
     """
-    return "GITHUB_ACTIONS" in os.environ and "GITHUB_WORKFLOW" in os.environ and "RUNNER_OS" in os.environ
+    return (
+        "GITHUB_ACTIONS" in os.environ
+        and "GITHUB_WORKFLOW" in os.environ
+        and "RUNNER_OS" in os.environ
+    )
 
 
 def get_git_dir():
@@ -964,7 +1157,9 @@ def get_git_origin_url():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            origin = subprocess.check_output(
+                ["git", "config", "--get", "remote.origin.url"]
+            )
             return origin.decode().strip()
         except subprocess.CalledProcessError:
             return None
@@ -979,7 +1174,9 @@ def get_git_branch():
     """
     if IS_GIT_DIR:
         try:
-            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+            origin = subprocess.check_output(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"]
+            )
             return origin.decode().strip()
         except subprocess.CalledProcessError:
             return None
@@ -996,7 +1193,11 @@ def get_default_args(func):
         (dict): A dictionary where each key is a parameter name, and each value is the default value of that parameter.
     """
     signature = inspect.signature(func)
-    return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
+    return {
+        k: v.default
+        for k, v in signature.parameters.items()
+        if v.default is not inspect.Parameter.empty
+    }
 
 
 def get_ubuntu_version():
@@ -1039,7 +1240,11 @@ def get_user_config_dir(sub_dir="Ultralytics"):
             f"user config directory '{path}' is not writeable, defaulting to '/tmp' or CWD."
             "Alternatively you can define a YOLO_CONFIG_DIR environment variable for this path."
         )
-        path = Path("/tmp") / sub_dir if is_dir_writeable("/tmp") else Path().cwd() / sub_dir
+        path = (
+            Path("/tmp") / sub_dir
+            if is_dir_writeable("/tmp")
+            else Path().cwd() / sub_dir
+        )
 
     # Create the subdirectory if it does not exist
     path.mkdir(parents=True, exist_ok=True)
@@ -1048,7 +1253,13 @@ def get_user_config_dir(sub_dir="Ultralytics"):
 
 
 # Define constants (required below)
+<<<<<<< HEAD
+PROC_DEVICE_MODEL = (
+    read_device_model()
+)  # is_jetson() and is_raspberrypi() depend on this constant
+=======
 DEVICE_MODEL = read_device_model()  # is_jetson() and is_raspberrypi() depend on this constant
+>>>>>>> upstream/main
 ONLINE = is_online()
 IS_COLAB = is_colab()
 IS_KAGGLE = is_kaggle()
@@ -1059,7 +1270,9 @@ IS_PIP_PACKAGE = is_pip_package()
 IS_RASPBERRYPI = is_raspberrypi()
 GIT_DIR = get_git_dir()
 IS_GIT_DIR = is_git_dir()
-USER_CONFIG_DIR = Path(os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir())  # Ultralytics settings dir
+USER_CONFIG_DIR = Path(
+    os.getenv("YOLO_CONFIG_DIR") or get_user_config_dir()
+)  # Ultralytics settings dir
 SETTINGS_FILE = USER_CONFIG_DIR / "settings.json"
 
 
@@ -1094,7 +1307,9 @@ def colorstr(*input):
     References:
         https://en.wikipedia.org/wiki/ANSI_escape_code
     """
-    *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
+    *args, string = (
+        input if len(input) > 1 else ("blue", "bold", input[0])
+    )  # color arguments, string
     colors = {
         "black": "\033[30m",  # basic colors
         "red": "\033[31m",
@@ -1217,7 +1432,9 @@ class Retry(contextlib.ContextDecorator):
                     LOGGER.warning(f"Retry {self._attempts}/{self.times} failed: {e}")
                     if self._attempts >= self.times:
                         raise e
-                    time.sleep(self.delay * (2**self._attempts))  # exponential backoff delay
+                    time.sleep(
+                        self.delay * (2**self._attempts)
+                    )  # exponential backoff delay
 
         return wrapped_func
 
@@ -1248,7 +1465,9 @@ def threaded(func):
     def wrapper(*args, **kwargs):
         """Multi-thread a given function based on 'threaded' kwarg and return the thread or function result."""
         if kwargs.pop("threaded", True):  # run in thread
-            thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
+            thread = threading.Thread(
+                target=func, args=args, kwargs=kwargs, daemon=True
+            )
             thread.start()
             return thread
         else:
@@ -1303,7 +1522,10 @@ def set_sentry():
         """
         if "exc_info" in hint:
             exc_type, exc_value, _ = hint["exc_info"]
-            if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
+            if exc_type in {
+                KeyboardInterrupt,
+                FileNotFoundError,
+            } or "out of memory" in str(exc_value):
                 return None  # do not send event
 
         event["tags"] = {
@@ -1370,7 +1592,19 @@ class JSONDict(dict):
                 with open(self.file_path) as f:
                     self.update(json.load(f))
         except json.JSONDecodeError:
+<<<<<<< HEAD
+            print(
+                f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary."
+            )
+=======
+<<<<<<< HEAD
+            print(
+                f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary."
+            )
+=======
             LOGGER.warning(f"Error decoding JSON from {self.file_path}. Starting with an empty dictionary.")
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         except Exception as e:
             LOGGER.error(f"Error reading from {self.file_path}: {e}")
 
@@ -1404,6 +1638,8 @@ class JSONDict(dict):
 
     def __str__(self):
         """Return a pretty-printed JSON string representation of the dictionary."""
+        contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
+        return f'JSONDict("{self.file_path}"):\n{contents}'
         contents = json.dumps(dict(self), indent=2, ensure_ascii=False, default=self._json_default)
         return f'JSONDict("{self.file_path}"):\n{contents}'
 
@@ -1455,7 +1691,9 @@ class SettingsManager(JSONDict):
         from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
         root = GIT_DIR or Path()
-        datasets_root = (root.parent if GIT_DIR and is_dir_writeable(root.parent) else root).resolve()
+        datasets_root = (
+            root.parent if GIT_DIR and is_dir_writeable(root.parent) else root
+        ).resolve()
 
         self.file = Path(file)
         self.version = version
@@ -1464,7 +1702,9 @@ class SettingsManager(JSONDict):
             "datasets_dir": str(datasets_root / "datasets"),  # Datasets directory
             "weights_dir": str(root / "weights"),  # Model weights directory
             "runs_dir": str(root / "runs"),  # Experiment runs directory
-            "uuid": hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
+            "uuid": hashlib.sha256(
+                str(uuid.getnode()).encode()
+            ).hexdigest(),  # SHA-256 anonymized UUID hash
             "sync": True,  # Enable synchronization
             "api_key": "",  # Ultralytics API Key
             "openai_api_key": "",  # OpenAI API Key
@@ -1472,13 +1712,28 @@ class SettingsManager(JSONDict):
             "comet": True,  # Comet integration
             "dvc": True,  # DVC integration
             "hub": True,  # Ultralytics HUB integration
+<<<<<<< HEAD
+            "mlflow": False,  # MLflow integration
+            "neptune": False,  # Neptune integration
+            "raytune": False,  # Ray Tune integration
+            "tensorboard": False,  # TensorBoard logging
+            "wandb": True,  # Weights & Biases logging
+=======
+<<<<<<< HEAD
+            "mlflow": False,  # MLflow integration
+            "neptune": False,  # Neptune integration
+            "raytune": False,  # Ray Tune integration
+            "tensorboard": False,  # TensorBoard logging
+            "wandb": True,  # Weights & Biases logging
+=======
             "mlflow": True,  # MLflow integration
             "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging
-            "vscode_msg": True,  # VSCode message
-            "openvino_msg": True,  # OpenVINO export on Intel CPU message
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+            "vscode_msg": True,  # VSCode messaging
         }
 
         self.help_msg = (
@@ -1490,16 +1745,33 @@ class SettingsManager(JSONDict):
         with torch_distributed_zero_first(LOCAL_RANK):
             super().__init__(self.file)
 
-            if not self.file.exists() or not self:  # Check if file doesn't exist or is empty
-                LOGGER.info(f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}")
+            if (
+                not self.file.exists() or not self
+            ):  # Check if file doesn't exist or is empty
+                LOGGER.info(
+                    f"Creating new Ultralytics Settings v{version} file ✅ {self.help_msg}"
+                )
                 self.reset()
 
             self._validate_settings()
 
     def _validate_settings(self):
         """Validate the current settings and reset if necessary."""
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
+        correct_keys = set(self.keys()) == set(self.defaults.keys())
+        correct_types = all(
+            isinstance(self.get(k), type(v)) for k, v in self.defaults.items()
+        )
+<<<<<<< HEAD
+=======
+=======
         correct_keys = frozenset(self.keys()) == frozenset(self.defaults.keys())
         correct_types = all(isinstance(self.get(k), type(v)) for k, v in self.defaults.items())
+>>>>>>> 9605f31a2f783639d6d0c7be54fc3414834c0a43
+>>>>>>> efc95ddd0710609e6fba38e3c8cdd3a9ec2f61e0
         correct_version = self.get("settings_version", "") == self.version
 
         if not (correct_keys and correct_types and correct_version):
@@ -1517,21 +1789,25 @@ class SettingsManager(JSONDict):
             )
 
     def __setitem__(self, key, value):
-        """Update one key: value pair."""
+        """Updates one key: value pair."""
         self.update({key: value})
 
     def update(self, *args, **kwargs):
-        """Update settings, validating keys and types."""
+        """Updates settings, validating keys and types."""
         for arg in args:
             if isinstance(arg, dict):
-                kwargs.update(arg)
+                kwargs |= arg
         for k, v in kwargs.items():
             if k not in self.defaults:
                 raise KeyError(f"No Ultralytics setting '{k}'. {self.help_msg}")
             t = type(self.defaults[k])
             if not isinstance(v, t):
                 raise TypeError(
+<<<<<<< HEAD
+                    f"Ultralytics setting '{k}' must be of type '{t}', not '{type(v)}'. {self.help_msg}"
+=======
                     f"Ultralytics setting '{k}' must be '{t.__name__}' type, not '{type(v).__name__}'. {self.help_msg}"
+>>>>>>> upstream/main
                 )
         super().update(*args, **kwargs)
 
@@ -1551,8 +1827,17 @@ def deprecation_warn(arg, new_arg=None):
 
 def clean_url(url):
     """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
+<<<<<<< HEAD
+    url = (
+        Path(url).as_posix().replace(":/", "://")
+    )  # Pathlib turns :// -> :/, as_posix() for Windows
+    return urllib.parse.unquote(url).split("?")[
+        0
+    ]  # '%2F' to '/', split https://url.com/file.txt?auth
+=======
     url = Path(url).as_posix().replace(":/", "://")  # Pathlib turns :// -> :/, as_posix() for Windows
-    return unquote(url).split("?", 1)[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+    return unquote(url).split("?")[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+>>>>>>> upstream/main
 
 
 def url2file(url):
@@ -1562,11 +1847,21 @@ def url2file(url):
 
 def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
     """Display a message to install Ultralytics-Snippets for VS Code if not already installed."""
-    path = (USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]) / ".vscode/extensions"
-    obs_file = path / ".obsolete"  # file tracks uninstalled extensions, while source directory remains
-    installed = any(path.glob(f"{ext}*")) and ext not in (obs_file.read_text("utf-8") if obs_file.exists() else "")
+    path = (
+        USER_CONFIG_DIR.parents[2] if WINDOWS else USER_CONFIG_DIR.parents[1]
+    ) / ".vscode/extensions"
+    obs_file = (
+        path / ".obsolete"
+    )  # file tracks uninstalled extensions, while source directory remains
+    installed = any(path.glob(f"{ext}*")) and ext not in (
+        obs_file.read_text("utf-8") if obs_file.exists() else ""
+    )
     url = "https://docs.ultralytics.com/integrations/vscode"
-    return "" if installed else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
+    return (
+        ""
+        if installed
+        else f"{colorstr('VS Code:')} view Ultralytics VS Code Extension ⚡ at {url}"
+    )
 
 
 # Run below code on utils init ------------------------------------------------------------------------------------
@@ -1574,20 +1869,20 @@ def vscode_msg(ext="ultralytics.ultralytics-snippets") -> str:
 # Check first-install steps
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = SettingsManager()  # initialize settings
-PERSISTENT_CACHE = JSONDict(USER_CONFIG_DIR / "persistent_cache.json")  # initialize persistent cache
+PERSISTENT_CACHE = JSONDict(
+    USER_CONFIG_DIR / "persistent_cache.json"
+)  # initialize persistent cache
 DATASETS_DIR = Path(SETTINGS["datasets_dir"])  # global datasets directory
 WEIGHTS_DIR = Path(SETTINGS["weights_dir"])  # global weights directory
 RUNS_DIR = Path(SETTINGS["runs_dir"])  # global runs directory
 ENVIRONMENT = (
     "Colab"
     if IS_COLAB
-    else "Kaggle"
-    if IS_KAGGLE
-    else "Jupyter"
-    if IS_JUPYTER
-    else "Docker"
-    if IS_DOCKER
-    else platform.system()
+    else (
+        "Kaggle"
+        if IS_KAGGLE
+        else "Jupyter" if IS_JUPYTER else "Docker" if IS_DOCKER else platform.system()
+    )
 )
 TESTS_RUNNING = is_pytest_running() or is_github_action_running()
 set_sentry()
