@@ -19,7 +19,7 @@ __all__ = (
     "ConvTranspose",
     "Focus",
     "GhostConv",
-    "GhostConvV2"
+    "GhostConvV2", 
     "ChannelAttention",
     "SpatialAttention",
     "CBAM",
@@ -32,10 +32,13 @@ __all__ = (
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     """Pad to 'same' shape outputs."""
     if d > 1:
-        k = d * (k - 1) + 1 if isinstance(k, int) else [d * (x - 1) + 1 for x in k]  # actual kernel-size
+        k = (
+            d * (k - 1) + 1 if isinstance(k, int) else [d * (x - 1) + 1 for x in k]
+        )  # actual kernel-size
     if p is None:
         p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
     return p
+
 
 def _make_divisible(v, divisor, min_value=None):
     """
@@ -52,11 +55,12 @@ def _make_divisible(v, divisor, min_value=None):
         new_v += divisor
     return new_v
 
+
 def hard_sigmoid(x, inplace: bool = False):
     if inplace:
-        return x.add_(3.).clamp_(0., 6.).div_(6.)
+        return x.add_(3.0).clamp_(0.0, 6.0).div_(6.0)
     else:
-        return F.relu6(x + 3.) / 6.
+        return F.relu6(x + 3.0) / 6.0
 
 
 class Conv(nn.Module):
@@ -87,9 +91,15 @@ class Conv(nn.Module):
             act (bool | nn.Module): Activation function.
         """
         super().__init__()
-        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
+        self.conv = nn.Conv2d(
+            c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False
+        )
         self.bn = nn.BatchNorm2d(c2)
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.act = (
+            self.default_act
+            if act is True
+            else act if isinstance(act, nn.Module) else nn.Identity()
+        )
 
     def forward(self, x):
         """
@@ -142,7 +152,9 @@ class Conv2(Conv):
             act (bool | nn.Module): Activation function.
         """
         super().__init__(c1, c2, k, s, p, g=g, d=d, act=act)
-        self.cv2 = nn.Conv2d(c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False)  # add 1x1 conv
+        self.cv2 = nn.Conv2d(
+            c1, c2, 1, s, autopad(1, p, d), groups=g, dilation=d, bias=False
+        )  # add 1x1 conv
 
     def forward(self, x):
         """
@@ -281,7 +293,11 @@ class ConvTranspose(nn.Module):
         super().__init__()
         self.conv_transpose = nn.ConvTranspose2d(c1, c2, k, s, p, bias=not bn)
         self.bn = nn.BatchNorm2d(c2) if bn else nn.Identity()
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.act = (
+            self.default_act
+            if act is True
+            else act if isinstance(act, nn.Module) else nn.Identity()
+        )
 
     def forward(self, x):
         """
@@ -347,7 +363,17 @@ class Focus(nn.Module):
         Returns:
             (torch.Tensor): Output tensor.
         """
-        return self.conv(torch.cat((x[..., ::2, ::2], x[..., 1::2, ::2], x[..., ::2, 1::2], x[..., 1::2, 1::2]), 1))
+        return self.conv(
+            torch.cat(
+                (
+                    x[..., ::2, ::2],
+                    x[..., 1::2, ::2],
+                    x[..., ::2, 1::2],
+                    x[..., 1::2, 1::2],
+                ),
+                1,
+            )
+        )
         # return self.conv(self.contract(x))
 
 
@@ -395,9 +421,63 @@ class GhostConv(nn.Module):
         y = self.cv1(x)
         return torch.cat((y, self.cv2(y)), 1)
 
+
 class GhostConvV2(nn.Module):
+    """
+    Implementation of GhostNetModuleV2
+
+    Reference: https://github.com/huawei-noah/Efficient-AI-Backbones/blob/master/ghostnetv2_pytorch/model/ghostnetv2_torch.py
+    """
+
     def __init__(self, c1, c2, k=1, s=1, g=1, act=True):
+        """Implements with attetntion (DFC)"""
+        c_ = c2 // 2  # simplifies lines 91-93
         
+        self.oup = c2
+
+        # primary conv
+        self.cv1 = Conv(c1, c_, k, s, None, g, act=act)
+
+        # cheap operation (depth wise)
+        self.cv2 = Conv(
+            c_, c_, 3, 1, c_, act=act
+        )  # dw_size = 3 (following the original implementation)
+
+        # dfc attention (refer to original implementation as ultralytics' Conv doesn't support tuple kernel)
+        self.dfc = nn.Sequential(
+            nn.Conv2d(c1, c2, 1, 1, 1, bias=False),
+            nn.BatchNorm2d(c2),
+            nn.Conv2d(
+                c2,
+                c2,
+                kernel_size=(1, 5),
+                stride=1,
+                padding=(0, 2),
+                groups=c2,
+                bias=False,
+            ),
+            nn.BatchNorm2d(c2),
+            nn.Conv2d(
+                c2,
+                c2,
+                kernel_size=(5, 1),
+                stride=1,
+                padding=(2, 0),
+                groups=c2,
+                bias=False,
+            ),
+            nn.BatchNorm2d(c2),
+        )
+    
+    def forward(self, x):
+        """Apply Ghost Conv V2 to input tensor"""
+        res = self.dfc(F.avg_pool2d(x, 2, 2))
+        x1 = self.cv1(x)
+        x2 = self.cv2(x1)
+        
+        out = torch.cat([x1, x2], dim=1)
+        return out[:, :self.oup, :, :] * F.interpolate(nn.SiLU(res), size=(out.shape[-2], out.shape[-1], mode="nearest"))
+
 
 class RepConv(nn.Module):
     """
@@ -418,7 +498,9 @@ class RepConv(nn.Module):
 
     default_act = nn.SiLU()  # default activation
 
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
+    def __init__(
+        self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False
+    ):
         """
         Initialize RepConv module with given parameters.
 
@@ -439,9 +521,15 @@ class RepConv(nn.Module):
         self.g = g
         self.c1 = c1
         self.c2 = c2
-        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.act = (
+            self.default_act
+            if act is True
+            else act if isinstance(act, nn.Module) else nn.Identity()
+        )
 
-        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.bn = (
+            nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        )
         self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
         self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
 
@@ -481,7 +569,10 @@ class RepConv(nn.Module):
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)
         kernelid, biasid = self._fuse_bn_tensor(self.bn)
-        return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
+        return (
+            kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid,
+            bias3x3 + bias1x1 + biasid,
+        )
 
     @staticmethod
     def _pad_1x1_to_3x3_tensor(kernel1x1):
@@ -564,13 +655,23 @@ class RepConv(nn.Module):
         if hasattr(self, "id_tensor"):
             self.__delattr__("id_tensor")
 
+
 class SqueezeExcite(nn.Module):
     """Implementation of Squeeze and Excite attention
 
     Reference: https://github.com/huawei-noah/Efficient-AI-Backbones/blob/master/ghostnetv2_pytorch/model/ghostnetv2_torch.py#L39
     """
-    def __init__(self, in_chs, se_ratio=0.25, reduced_base_chs=None,
-                 act_layer=nn.ReLU, gate_fn=hard_sigmoid, divisor=4, **_):
+
+    def __init__(
+        self,
+        in_chs,
+        se_ratio=0.25,
+        reduced_base_chs=None,
+        act_layer=nn.ReLU,
+        gate_fn=hard_sigmoid,
+        divisor=4,
+        **_,
+    ):
         super(SqueezeExcite, self).__init__()
         self.gate_fn = gate_fn
         reduced_chs = _make_divisible((reduced_base_chs or in_chs) * se_ratio, divisor)
@@ -586,6 +687,7 @@ class SqueezeExcite(nn.Module):
         x_se = self.conv_expand(x_se)
         x = x * self.gate_fn(x_se)
         return x
+
 
 class ChannelAttention(nn.Module):
     """
@@ -661,7 +763,14 @@ class SpatialAttention(nn.Module):
         Returns:
             (torch.Tensor): Spatial-attended output tensor.
         """
-        return x * self.act(self.cv1(torch.cat([torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]], 1)))
+        return x * self.act(
+            self.cv1(
+                torch.cat(
+                    [torch.mean(x, 1, keepdim=True), torch.max(x, 1, keepdim=True)[0]],
+                    1,
+                )
+            )
+        )
 
 
 class CBAM(nn.Module):
