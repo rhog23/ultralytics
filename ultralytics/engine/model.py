@@ -752,15 +752,16 @@ class Model(torch.nn.Module):
         Args:
             trainer (BaseTrainer, optional): Custom trainer instance for model training. If None, uses default.
             **kwargs (Any): Arbitrary keyword arguments for training configuration. Common options include:
-                data (str): Path to dataset configuration file.
-                epochs (int): Number of training epochs.
-                batch (int): Batch size for training.
-                imgsz (int): Input image size.
-                device (str): Device to run training on (e.g., 'cuda', 'cpu').
-                workers (int): Number of worker threads for data loading.
-                optimizer (str): Optimizer to use for training.
-                lr0 (float): Initial learning rate.
-                patience (int): Epochs to wait for no observable improvement for early stopping of training.
+                - data (str): Path to dataset configuration file.
+                - epochs (int): Number of training epochs.
+                - batch (int): Batch size for training.
+                - imgsz (int): Input image size.
+                - device (str): Device to run training on (e.g., 'cuda', 'cpu').
+                - workers (int): Number of worker threads for data loading.
+                - optimizer (str): Optimizer to use for training.
+                - lr0 (float): Initial learning rate.
+                - patience (int): Epochs to wait for no observable improvement for early stopping of training.
+                - augmentations (list[Callable]): List of augmentation functions to apply during training.
 
         Returns:
             (Dict | None): Training metrics if available and training is successful; otherwise, None.

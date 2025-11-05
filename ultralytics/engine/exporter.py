@@ -87,7 +87,6 @@ from ultralytics.utils import (
     MACOS,
     MACOS_VERSION,
     RKNN_CHIPS,
-    ROOT,
     SETTINGS,
     WINDOWS,
     YAML,
@@ -97,16 +96,24 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.checks import (
     check_imgsz,
-    check_is_path_safe,
     check_requirements,
     check_version,
     is_intel,
     is_sudo_available,
 )
-from ultralytics.utils.downloads import attempt_download_asset, get_github_assets, safe_download
-from ultralytics.utils.export import export_engine, export_onnx
-from ultralytics.utils.files import file_size, spaces_in_path
-from ultralytics.utils.ops import Profile, nms_rotated
+from ultralytics.utils.export import (
+    keras2pb,
+    onnx2engine,
+    onnx2saved_model,
+    pb2tfjs,
+    tflite2edgetpu,
+    torch2imx,
+    torch2onnx,
+)
+from ultralytics.utils.files import file_size
+from ultralytics.utils.metrics import batch_probiou
+from ultralytics.utils.nms import TorchNMS
+from ultralytics.utils.ops import Profile
 from ultralytics.utils.patches import arange_patch
 from ultralytics.utils.torch_utils import TORCH_1_13, get_latest_opset, select_device
 
@@ -482,9 +489,9 @@ class Exporter:
         if jit or ncnn:  # TorchScript
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
-            f[1], _ = self.export_engine(dla=dla)
+            f[1] = self.export_engine(dla=dla)
         if onnx:  # ONNX
-            f[2], _ = self.export_onnx()
+            f[2] = self.export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
         if coreml:  # CoreML
@@ -762,66 +769,32 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr("NCNN:")):
         """Export YOLO model to NCNN format using PNNX https://github.com/pnnx/pnnx."""
-        check_requirements("ncnn")
-        import ncnn  # noqa
+        check_requirements("ncnn", cmds="--no-deps")  # no deps to avoid installing opencv-python
+        check_requirements("pnnx")
+        import ncnn
+        import pnnx
 
-        LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__}...")
+        LOGGER.info(f"\n{prefix} starting export with NCNN {ncnn.__version__} and PNNX {pnnx.__version__}...")
         f = Path(str(self.file).replace(self.file.suffix, f"_ncnn_model{os.sep}"))
-        f_ts = self.file.with_suffix(".torchscript")
 
-        name = Path("pnnx.exe" if WINDOWS else "pnnx")  # PNNX filename
-        pnnx = name if name.is_file() else (ROOT / name)
-        if not pnnx.is_file():
-            LOGGER.warning(
-                f"{prefix} PNNX not found. Attempting to download binary file from "
-                "https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory "
-                f"or in {ROOT}. See PNNX repo for full installation instructions."
-            )
-            system = "macos" if MACOS else "windows" if WINDOWS else "linux-aarch64" if ARM64 else "linux"
-            try:
-                release, assets = get_github_assets(repo="pnnx/pnnx")
-                asset = [x for x in assets if f"{system}.zip" in x][0]
-                assert isinstance(asset, str), "Unable to retrieve PNNX repo assets"  # i.e. pnnx-20240410-macos.zip
-                LOGGER.info(f"{prefix} successfully found latest PNNX asset file {asset}")
-            except Exception as e:
-                release = "20240410"
-                asset = f"pnnx-{release}-{system}.zip"
-                LOGGER.warning(f"{prefix} PNNX GitHub assets not found: {e}, using default {asset}")
-            unzip_dir = safe_download(f"https://github.com/pnnx/pnnx/releases/download/{release}/{asset}", delete=True)
-            if check_is_path_safe(Path.cwd(), unzip_dir):  # avoid path traversal security vulnerability
-                shutil.move(src=unzip_dir / name, dst=pnnx)  # move binary to ROOT
-                pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
-                shutil.rmtree(unzip_dir)  # delete unzip dir
+        ncnn_args = dict(
+            ncnnparam=(f / "model.ncnn.param").as_posix(),
+            ncnnbin=(f / "model.ncnn.bin").as_posix(),
+            ncnnpy=(f / "model_ncnn.py").as_posix(),
+        )
 
-        ncnn_args = [
-            f"ncnnparam={f / 'model.ncnn.param'}",
-            f"ncnnbin={f / 'model.ncnn.bin'}",
-            f"ncnnpy={f / 'model_ncnn.py'}",
-        ]
+        pnnx_args = dict(
+            ptpath=(f / "model.pt").as_posix(),
+            pnnxparam=(f / "model.pnnx.param").as_posix(),
+            pnnxbin=(f / "model.pnnx.bin").as_posix(),
+            pnnxpy=(f / "model_pnnx.py").as_posix(),
+            pnnxonnx=(f / "model.pnnx.onnx").as_posix(),
+        )
 
-        pnnx_args = [
-            f"pnnxparam={f / 'model.pnnx.param'}",
-            f"pnnxbin={f / 'model.pnnx.bin'}",
-            f"pnnxpy={f / 'model_pnnx.py'}",
-            f"pnnxonnx={f / 'model.pnnx.onnx'}",
-        ]
-
-        cmd = [
-            str(pnnx),
-            str(f_ts),
-            *ncnn_args,
-            *pnnx_args,
-            f"fp16={int(self.args.half)}",
-            f"device={self.device.type}",
-            f'inputshape="{[self.args.batch, 3, *self.imgsz]}"',
-        ]
         f.mkdir(exist_ok=True)  # make ncnn_model directory
-        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
-        subprocess.run(cmd, check=True)
+        pnnx.export(self.model, inputs=self.im, **ncnn_args, **pnnx_args, fp16=self.args.half, device=self.device.type)
 
-        # Remove debug files
-        pnnx_files = [x.rsplit("=", 1)[-1] for x in pnnx_args]
-        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_files):
+        for f_debug in ("debug.bin", "debug.param", "debug2.bin", "debug2.param", *pnnx_args.values()):
             Path(f_debug).unlink(missing_ok=True)
 
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml
