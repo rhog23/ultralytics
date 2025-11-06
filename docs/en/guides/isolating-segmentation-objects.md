@@ -53,7 +53,7 @@ After performing the [Segment Task](../tasks/segment.md), it's sometimes desirab
     import numpy as np
 
     # (2) Iterate detection results (helpful for multiple images)
-    for r in results:
+    for r in res:
         img = np.copy(r.orig_img)
         img_name = Path(r.path).stem  # source image base-name
 

@@ -58,7 +58,8 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
+            """
+            Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1 (int): The first argument.
@@ -80,7 +81,8 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
+            """
+            Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1 (int): The first argument.
@@ -102,7 +104,8 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1, arg2=4):
-            """Example function demonstrating Google-style docstrings.
+            """
+            Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1 (int): The first argument.
@@ -143,7 +146,8 @@ When adding new functions or classes, include [Google-style docstrings](https://
 
         ```python
         def example_function(arg1: int, arg2: int = 4) -> bool:
-            """Example function demonstrating Google-style docstrings.
+            """
+            Example function demonstrating Google-style docstrings.
 
             Args:
                 arg1: The first argument.
